@@ -1,11 +1,45 @@
-<div align="center">
+# C.M. Sharvesh — Portfolio
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A single-page React + Vite portfolio built around one idea: the whole
+page reads like a continuous diagnostic scan (a nod to HAILMARY, the
+TB-detection project) — a fixed side readout tracks scroll progress,
+sections wipe into view like a scan reveal, and projects are framed as
+expandable "reports."
 
-  <h1>Built with AI Studio</h2>
+## Run it
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+```bash
+npm install
+npm run dev
+```
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+Then open the local URL Vite prints (usually `http://localhost:5173`).
 
-</div>
+## Build for deployment
+
+```bash
+npm run build
+```
+
+This outputs a static `dist/` folder you can deploy to Vercel,
+Netlify, GitHub Pages, or any static host.
+
+## Structure
+
+```
+src/
+  components/   Hero, About, Skills, Experience, Projects,
+                Certifications, Contact, Nav, ScanRail, Reveal
+  hooks/        useReveal, useScanProgress, useTypewriter
+  index.css     design tokens + global styles
+```
+
+## Customizing
+
+- **Colors / type** — edit the CSS variables at the top of `src/index.css`.
+- **Content** — each section's copy and data lives at the top of its
+  own component file (e.g. `PROJECTS` array in `Projects.jsx`,
+  `STACK` array in `Skills.jsx`).
+- **Sections shown in the side rail / nav** — edit the `SECTIONS`
+  array in `ScanRail.jsx` and `LINKS` in `Nav.jsx` together so the ids
+  match.

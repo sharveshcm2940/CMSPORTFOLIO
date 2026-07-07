@@ -1,0 +1,271 @@
+/* ============================================================
+   DESIGN TOKENS
+   Subject: full-stack + AI developer whose flagship project is a
+   diagnostic scanner (HAILMARY, TB detection). The whole site is
+   framed as a single continuous "scan" of a page — a fixed readout,
+   scanline reveals, and a report-card language for projects.
+   ============================================================ */
+:root {
+  --bg: #0d1210;
+  --bg-soft: #101613;
+  --panel: #151d19;
+  --panel-raised: #1a2420;
+  --border: #26332c;
+  --border-soft: #1c2620;
+
+  --text: #eef1ec;
+  --text-dim: #b7c2ba;
+  --text-mute: #7c8a82;
+
+  --amber: #e8a33d;
+  --amber-dim: #a97a30;
+  --teal: #52c9b6;
+  --teal-dim: #3a8f81;
+
+  --font-display: "Fraunces", "Iowan Old Style", serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --max-w: 1180px;
+  --radius: 3px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* subtle paper-grain so the dark field doesn't feel like flat AI-slab gradient */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.container {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 20px;
+  }
+}
+
+.section {
+  position: relative;
+  padding: 128px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+@media (max-width: 780px) {
+  .section {
+    padding: 84px 0;
+  }
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 22px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--amber);
+}
+
+.section-title {
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.15;
+  color: var(--text);
+  max-width: 640px;
+}
+
+.section-sub {
+  margin-top: 18px;
+  max-width: 560px;
+  color: var(--text-dim);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+/* ============================================================
+   SCANLINE READOUT — fixed side rail, signature element
+   ============================================================ */
+.scan-rail {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 40px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 0;
+  pointer-events: none;
+}
+
+.scan-rail__track {
+  position: relative;
+  width: 1px;
+  flex: 1;
+  background: var(--border);
+  margin: 14px 0;
+}
+
+.scan-rail__fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  background: linear-gradient(var(--amber), var(--teal));
+  transform-origin: top;
+}
+
+.scan-rail__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  letter-spacing: 0.1em;
+  writing-mode: vertical-rl;
+}
+
+.scan-rail__pct {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--amber);
+}
+
+@media (max-width: 900px) {
+  .scan-rail {
+    display: none;
+  }
+}
+
+/* ambient sweeping line across the whole viewport, very subtle */
+.ambient-scan {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 140px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(232, 163, 61, 0.05) 45%,
+    rgba(82, 201, 182, 0.06) 55%,
+    transparent
+  );
+  animation: ambient-sweep 14s linear infinite;
+}
+
+@keyframes ambient-sweep {
+  0% {
+    transform: translateY(-160px);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+/* generic reveal classes driven by IntersectionObserver in React */
+.reveal {
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  transform: translateY(14px);
+  transition: opacity 0.7s var(--ease), clip-path 0.9s var(--ease), transform 0.9s var(--ease);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  clip-path: inset(0 0 0% 0);
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
+
+::selection {
+  background: var(--amber);
+  color: #0d1210;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
