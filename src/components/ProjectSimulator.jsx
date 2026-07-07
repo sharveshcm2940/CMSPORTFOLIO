@@ -61,8 +61,9 @@ function HailmarySimulator() {
     let current = 0;
     const interval = setInterval(() => {
       if (current < steps.length) {
-        setScanProgress(steps[current].p);
-        setLogs((prev) => [...prev, steps[current].l]);
+        const step = steps[current];
+        setScanProgress(step.p);
+        setLogs((prev) => [...prev, step.l]);
         current++;
       } else {
         clearInterval(interval);
