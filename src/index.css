@@ -22,8 +22,8 @@
   --teal: #52c9b6;
   --teal-dim: #3a8f81;
 
-  --font-display: "Fraunces", "Iowan Old Style", serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "DIN Condensed", "Barlow Condensed", "Oswald", sans-serif;
+  --font-body: "Rajdhani", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --max-w: 1180px;
@@ -56,6 +56,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
+  font-weight: 600; /* Rajdhani SemiBold global weight */
+  letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
@@ -74,8 +76,9 @@ body::before {
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 700; /* DIN Condensed Bold */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin: 0;
 }
 

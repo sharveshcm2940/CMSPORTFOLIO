@@ -9,6 +9,7 @@ import Skills from "./components/Skills.jsx";
 import Experience from "./components/Experience.jsx";
 import Projects from "./components/Projects.jsx";
 import ProjectTimeline from "./components/ProjectTimeline.jsx";
+import GitHubStats from "./components/GitHubStats.jsx";
 import Certifications from "./components/Certifications.jsx";
 import Contact from "./components/Contact.jsx";
 import SocialLinks from "./components/SocialLinks.jsx";
@@ -32,6 +33,7 @@ export default function App() {
         <Experience />
         <Projects />
         <ProjectTimeline />
+        <GitHubStats />
         <Certifications />
         <Contact />
       </main>

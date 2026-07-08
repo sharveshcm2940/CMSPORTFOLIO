@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Check, Send, Terminal as TermIcon, CheckCircle2, Wifi, RefreshCw } from "lucide-react";
+import { Copy, Check, Send, Terminal as TermIcon, CheckCircle2, Wifi, RefreshCw, Calendar, ArrowRight } from "lucide-react";
 import Reveal from "./Reveal.jsx";
 import { toast } from "./Toast.jsx";
 
@@ -41,13 +41,16 @@ const SIGNAL_TYPES = [
 export default function Contact() {
   const [copiedId, setCopiedId] = useState(null);
   
-  // Signal pinger states
+  // Terminal Contact Form states
+  const [activeStep, setActiveStep] = useState("welcome"); // welcome | name | email | type | message | review | transmitting | success
   const [senderName, setSenderName] = useState("");
-  const [message, setMessage] = useState("");
+  const [senderEmail, setSenderEmail] = useState("");
   const [signalType, setSignalType] = useState("collab");
-  const [txState, setTxState] = useState("idle"); // idle | transmitting | success
+  const [message, setMessage] = useState("");
   const [txProgress, setTxProgress] = useState(0);
   const [txLogs, setTxLogs] = useState([]);
+
+  const inputRef = useRef(null);
 
   // Copy helper
   const handleCopy = (e, id, value) => {
@@ -59,12 +62,16 @@ export default function Contact() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Signal transmission sequence
-  const startTransmission = (e) => {
-    e.preventDefault();
-    if (!senderName.trim() || !message.trim()) return;
+  // Focus utility
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [activeStep]);
 
-    setTxState("transmitting");
+  // Signal transmission sequence
+  const startTransmission = () => {
+    setActiveStep("transmitting");
     setTxProgress(0);
     setTxLogs(["[SYS] Initiating secure packet construction...", "[SYS] Fetching encryption certificate..."]);
 
@@ -86,7 +93,7 @@ export default function Contact() {
         currentStage++;
       } else {
         clearInterval(interval);
-        setTxState("success");
+        setActiveStep("success");
         toast("Signal transmitted successfully!", "success");
       }
     }, 600);
@@ -94,11 +101,29 @@ export default function Contact() {
 
   const resetForm = () => {
     setSenderName("");
+    setSenderEmail("");
     setMessage("");
     setSignalType("collab");
-    setTxState("idle");
+    setActiveStep("welcome");
     setTxProgress(0);
     setTxLogs([]);
+  };
+
+  const handleNextStep = (e, next) => {
+    e?.preventDefault();
+    if (activeStep === "name" && !senderName.trim()) {
+      toast("Please enter a valid sender name.", "info");
+      return;
+    }
+    if (activeStep === "email" && !senderEmail.trim()) {
+      toast("Please enter a valid email address.", "info");
+      return;
+    }
+    if (activeStep === "message" && !message.trim()) {
+      toast("Please draft your payload message.", "info");
+      return;
+    }
+    setActiveStep(next);
   };
 
   return (
@@ -112,6 +137,7 @@ export default function Contact() {
         </Reveal>
 
         <div className="contact__main-layout">
+          
           {/* Column 1: Contact details + Copy triggers */}
           <Reveal delay={1} className="contact__left">
             <div className="contact__grid">
@@ -167,114 +193,321 @@ export default function Contact() {
             </div>
           </Reveal>
 
-          {/* Column 2: Signal Transmitter */}
+          {/* Column 2: Terminal Contact Form */}
           <Reveal delay={2} className="contact__right">
-            <div className="signal-box">
-              <div className="signal-box__head mono">
-                <div className="signal-box__title">
-                  <Wifi className="pulse-signal" size={14} />
-                  <span>SIGNAL TRANSMITTER v1.0</span>
+            <div className="terminal-contact">
+              
+              {/* Terminal Window Header Bar */}
+              <div className="terminal-contact-header mono">
+                <div className="terminal-title">
+                  <TermIcon size={14} className="terminal-pulse" />
+                  <span>sharvesh@svce_contact_node: ~</span>
                 </div>
-                <div className="signal-box__badge">ENCRYPTED</div>
+                <div className="terminal-status-badge">CRT_SECURE</div>
               </div>
 
-              <div className="signal-box__body">
-                {txState === "idle" && (
-                  <form onSubmit={startTransmission} className="signal-form">
-                    <div className="signal-form__row">
-                      <label className="mono signal-form__label">Signal Type</label>
-                      <select
-                        className="signal-form__input signal-form__select mono"
-                        value={signalType}
-                        onChange={(e) => setSignalType(e.target.value)}
-                      >
-                        {SIGNAL_TYPES.map((t) => (
-                          <option key={t.value} value={t.value}>
-                            {t.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="signal-form__row">
-                      <label className="mono signal-form__label">Sender Handle</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="your name or organization"
-                        className="signal-form__input mono"
-                        value={senderName}
-                        onChange={(e) => setSenderName(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="signal-form__row">
-                      <label className="mono signal-form__label">Payload Message</label>
-                      <textarea
-                        required
-                        rows={3}
-                        placeholder="draft your message package..."
-                        className="signal-form__input signal-form__textarea mono"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                      />
-                    </div>
-
-                    <button type="submit" className="signal-form__submit mono">
-                      <Send size={13} />
-                      <span>TRANSMIT PACKETS</span>
-                    </button>
-                  </form>
-                )}
-
-                {txState === "transmitting" && (
-                  <div className="signal-tx">
-                    <div className="signal-tx__loader">
-                      <div className="signal-tx__progress-row mono">
-                        <span>TRANSMITTING DATA</span>
-                        <span>{txProgress}%</span>
-                      </div>
-                      <div className="signal-tx__bar-container">
-                        <div className="signal-tx__bar" style={{ width: `${txProgress}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="signal-tx__logs mono">
-                      {txLogs.map((log, i) => (
-                        <div key={i} className="signal-tx__log-line">
-                          {log}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {txState === "success" && (
-                  <div className="signal-success">
+              {/* Terminal Inner Console */}
+              <div className="terminal-contact-body">
+                <AnimatePresence mode="wait">
+                  
+                  {/* STEP: WELCOME */}
+                  {activeStep === "welcome" && (
                     <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="signal-success__badge"
+                      key="welcome"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="terminal-step mono"
                     >
-                      <CheckCircle2 className="success-icon" size={32} />
-                      <h4 className="mono">TRANSMISSION COMPLETED</h4>
+                      <p className="terminal-prompt">guest@svce:~$ ./connect_to_sharvesh.sh</p>
+                      <p className="terminal-text text-amber mt-2">
+                        [CONNECTING TO TERMINAL ROUTE 3000...]
+                      </p>
+                      <p className="terminal-text text-mute mt-1">
+                        - Host node: Chennai, TN, India
+                        <br />
+                        - Authentication: GUEST_HANDSHAKE
+                        <br />
+                        - Status: Ready to receive signal packets
+                      </p>
+                      <div className="mt-8">
+                        <button 
+                          onClick={() => setActiveStep("name")} 
+                          className="terminal-btn-primary flex items-center gap-2"
+                        >
+                          <span>INITIATE CONTACT SECURELY</span>
+                          <ArrowRight size={13} />
+                        </button>
+                      </div>
                     </motion.div>
+                  )}
 
-                    <div className="signal-success__receipt mono">
-                      <div className="receipt-row"><span>SENDER:</span> <span>{senderName}</span></div>
-                      <div className="receipt-row"><span>HEADER:</span> <span>[{signalType.toUpperCase()}]</span></div>
-                      <div className="receipt-row"><span>STATUS:</span> <span className="receipt-status">DELIVERED (202)</span></div>
-                    </div>
+                  {/* STEP: NAME */}
+                  {activeStep === "name" && (
+                    <motion.div
+                      key="name"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="terminal-step mono"
+                    >
+                      <p className="terminal-text text-mute">[STEP 1/4] INITIALIZING SENDER METADATA</p>
+                      <p className="terminal-prompt mt-2">guest@svce:~$ set sender_name</p>
+                      <label htmlFor="sender-name-input" className="terminal-question mt-2 block">
+                        Enter your name / organization:
+                      </label>
+                      <form onSubmit={(e) => handleNextStep(e, "email")} className="terminal-input-wrapper mt-3">
+                        <span className="terminal-cursor-prompt">&gt;&nbsp;</span>
+                        <input
+                          id="sender-name-input"
+                          ref={inputRef}
+                          type="text"
+                          required
+                          placeholder="Type your name..."
+                          className="terminal-text-input"
+                          value={senderName}
+                          onChange={(e) => setSenderName(e.target.value)}
+                        />
+                      </form>
+                      <div className="terminal-step-footer mt-6">
+                        <span className="terminal-hint text-mute">Press Enter or click</span>
+                        <button onClick={(e) => handleNextStep(e, "email")} className="terminal-btn-small">
+                          NEXT
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
 
-                    <button onClick={resetForm} className="signal-success__reset mono">
-                      <RefreshCw size={12} />
-                      <span>PING ANOTHER SIGNAL</span>
-                    </button>
-                  </div>
-                )}
+                  {/* STEP: EMAIL */}
+                  {activeStep === "email" && (
+                    <motion.div
+                      key="email"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="terminal-step mono"
+                    >
+                      <p className="terminal-text text-mute">[STEP 2/4] SPECIFYING RETURN ROUTE</p>
+                      <p className="terminal-text text-teal mt-1">[OK] SENDER_NAME set to: "{senderName}"</p>
+                      <p className="terminal-prompt mt-2">guest@svce:~$ set reply_path</p>
+                      <label htmlFor="reply-path-input" className="terminal-question mt-2 block">
+                        Enter your email address / return coordinate:
+                      </label>
+                      <form onSubmit={(e) => handleNextStep(e, "type")} className="terminal-input-wrapper mt-3">
+                        <span className="terminal-cursor-prompt">&gt;&nbsp;</span>
+                        <input
+                          id="reply-path-input"
+                          ref={inputRef}
+                          type="email"
+                          required
+                          placeholder="Type your email address..."
+                          className="terminal-text-input"
+                          value={senderEmail}
+                          onChange={(e) => setSenderEmail(e.target.value)}
+                        />
+                      </form>
+                      <div className="terminal-step-footer mt-6">
+                        <button onClick={() => setActiveStep("name")} className="terminal-btn-small text-mute">
+                          BACK
+                        </button>
+                        <div className="flex items-center gap-2">
+                          <span className="terminal-hint text-mute">Press Enter or click</span>
+                          <button onClick={(e) => handleNextStep(e, "type")} className="terminal-btn-small">
+                            NEXT
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* STEP: TYPE */}
+                  {activeStep === "type" && (
+                    <motion.div
+                      key="type"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="terminal-step mono"
+                    >
+                      <p className="terminal-text text-mute">[STEP 3/4] SELECTING SIGNAL TYPE</p>
+                      <p className="terminal-text text-teal mt-1">[OK] REPLY_PATH set to: "{senderEmail}"</p>
+                      <p className="terminal-prompt mt-2">guest@svce:~$ set signal_type</p>
+                      <p className="terminal-question mt-2">Select packet classification:</p>
+                      
+                      <div className="terminal-options-grid mt-4">
+                        {SIGNAL_TYPES.map((t) => {
+                          const isSelected = signalType === t.value;
+                          return (
+                            <button
+                              key={t.value}
+                              onClick={() => setSignalType(t.value)}
+                              className={`terminal-option-card ${isSelected ? "selected" : ""}`}
+                            >
+                              <span className="option-indicator">{isSelected ? "[●]" : "[ ]"}</span>
+                              <span className="option-label">{t.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="terminal-step-footer mt-8">
+                        <button onClick={() => setActiveStep("email")} className="terminal-btn-small text-mute">
+                          BACK
+                        </button>
+                        <button onClick={() => setActiveStep("message")} className="terminal-btn-small">
+                          NEXT
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* STEP: MESSAGE */}
+                  {activeStep === "message" && (
+                    <motion.div
+                      key="message"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="terminal-step mono"
+                    >
+                      <p className="terminal-text text-mute">[STEP 4/4] PREPARING PACKET PAYLOAD</p>
+                      <p className="terminal-text text-teal mt-1">[OK] SIGNAL_TYPE set to: "{signalType.toUpperCase()}"</p>
+                      <p className="terminal-prompt mt-2">guest@svce:~$ edit payload_message</p>
+                      <label htmlFor="payload-msg-input" className="terminal-question mt-2 block">
+                        Write your message package:
+                      </label>
+                      <div className="terminal-textarea-wrapper mt-3">
+                        <span className="terminal-textarea-prompt">&gt;&nbsp;</span>
+                        <textarea
+                          id="payload-msg-input"
+                          ref={inputRef}
+                          required
+                          rows={4}
+                          placeholder="Write your message details..."
+                          className="terminal-textarea-input"
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
+                        />
+                      </div>
+                      <div className="terminal-step-footer mt-6">
+                        <button onClick={() => setActiveStep("type")} className="terminal-btn-small text-mute">
+                          BACK
+                        </button>
+                        <button onClick={(e) => handleNextStep(e, "review")} className="terminal-btn-small">
+                          COMCOMPILE
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* STEP: REVIEW */}
+                  {activeStep === "review" && (
+                    <motion.div
+                      key="review"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="terminal-step mono"
+                    >
+                      <p className="terminal-prompt">guest@svce:~$ print_manifest</p>
+                      <div className="terminal-manifest mt-3">
+                        <div className="manifest-header">PACKET TRANSMISSION MANIFEST</div>
+                        <div className="manifest-grid mt-2">
+                          <div className="manifest-row">
+                            <span>SENDER:</span>
+                            <span className="text-amber">{senderName}</span>
+                          </div>
+                          <div className="manifest-row">
+                            <span>ROUTE:</span>
+                            <span className="text-amber">{senderEmail}</span>
+                          </div>
+                          <div className="manifest-row">
+                            <span>TYPE:</span>
+                            <span className="text-amber">{signalType.toUpperCase()}</span>
+                          </div>
+                          <div className="manifest-row border-none">
+                            <span>PAYLOAD:</span>
+                            <span className="text-dim truncate-msg">{message}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="terminal-step-footer mt-6">
+                        <button onClick={() => setActiveStep("message")} className="terminal-btn-small text-mute">
+                          EDIT
+                        </button>
+                        <button onClick={startTransmission} className="terminal-btn-primary flex items-center gap-2">
+                          <Send size={12} />
+                          <span>TRANSMIT SIGNAL</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* STEP: TRANSMITTING */}
+                  {activeStep === "transmitting" && (
+                    <motion.div
+                      key="transmitting"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="terminal-step mono"
+                    >
+                      <div className="terminal-loader">
+                        <div className="flex justify-between text-xs mb-1">
+                          <span>TRANSMITTING PACKETS...</span>
+                          <span>{txProgress}%</span>
+                        </div>
+                        <div className="terminal-progress-bar">
+                          <div className="progress-fill" style={{ width: `${txProgress}%` }} />
+                        </div>
+                      </div>
+
+                      <div className="terminal-logs mt-4">
+                        {txLogs.map((log, i) => (
+                          <div key={i} className="terminal-log-line">
+                            {log}
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* STEP: SUCCESS */}
+                  {activeStep === "success" && (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="terminal-step mono text-center"
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="success-glowing-circle">
+                          <CheckCircle2 size={36} className="text-teal" />
+                        </div>
+                        <h4 className="text-teal font-bold tracking-wider">TRANSMISSION COMPLETED SECURELY</h4>
+                      </div>
+
+                      <div className="terminal-receipt mt-6 text-left">
+                        <div className="receipt-line"><span>DESTINATION:</span> <span>c.m.sharvesh@svce.in</span></div>
+                        <div className="receipt-line"><span>STATUS:</span> <span className="text-teal">DELIVERED (202 ACCEPTED)</span></div>
+                        <div className="receipt-line"><span>CHECKSUM:</span> <span>MD5_SHA256_SECURE</span></div>
+                      </div>
+
+                      <button onClick={resetForm} className="terminal-btn-secondary flex items-center gap-2 mx-auto mt-8">
+                        <RefreshCw size={12} />
+                        <span>RESET CONSOLE CONNECTION</span>
+                      </button>
+                    </motion.div>
+                  )}
+
+                </AnimatePresence>
               </div>
+
             </div>
           </Reveal>
+
         </div>
       </div>
 
@@ -400,152 +633,307 @@ export default function Contact() {
           letter-spacing: 0.08em;
           font-weight: 600;
         }
-        
-        /* Signal Transmitter Console Box */
-        .signal-box {
+
+        /* CRT Terminal Contact Box styling */
+        .terminal-contact {
           border: 1px solid var(--border);
-          border-radius: 4px;
+          border-radius: 8px;
           background: var(--panel);
           overflow: hidden;
-          box-shadow: 0 20px 50px -25px rgba(0,0,0,0.5);
+          box-shadow: 0 20px 50px -25px rgba(0,0,0,0.6);
         }
-        .signal-box__head {
+
+        .terminal-contact-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 14px 20px;
+          padding: 12px 20px;
           background: var(--bg-soft);
           border-bottom: 1px solid var(--border-soft);
           font-size: 11px;
         }
-        .signal-box__title {
+
+        .terminal-title {
           display: flex;
           align-items: center;
           gap: 8px;
-          color: var(--teal);
-          font-weight: 600;
-          letter-spacing: 0.05em;
+          color: var(--text-dim);
+          font-weight: 500;
         }
-        .pulse-signal {
-          animation: pulse-op 1.5s ease-in-out infinite alternate;
+
+        .terminal-pulse {
+          color: var(--amber);
+          animation: terminal-blink 1.4s infinite alternate;
         }
-        @keyframes pulse-op {
+
+        @keyframes terminal-blink {
           0% { opacity: 0.4; }
           100% { opacity: 1; }
         }
-        .signal-box__badge {
-          color: var(--amber);
+
+        .terminal-status-badge {
           font-size: 9px;
-          background: rgba(232, 163, 61, 0.15);
-          padding: 2px 8px;
-          border-radius: 999px;
-          border: 1px solid var(--amber-dim);
-        }
-        .signal-box__body {
-          padding: 24px;
-          background: rgba(13, 18, 16, 0.4);
-        }
-        
-        /* Signal Form */
-        .signal-form {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-        .signal-form__row {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .signal-form__label {
-          font-size: 10px;
-          color: var(--text-mute);
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-        }
-        .signal-form__input {
-          background: var(--bg-soft);
+          background: rgba(255, 176, 0, 0.1);
+          color: var(--amber);
           border: 1px solid var(--border-soft);
-          border-radius: 3px;
-          color: var(--text);
-          padding: 10px 14px;
-          font-size: 13px;
-          outline: none;
-          transition: all 0.2s ease;
+          padding: 2px 8px;
+          border-radius: 4px;
         }
-        .signal-form__input::placeholder {
-          color: var(--text-mute);
-          opacity: 0.6;
+
+        .terminal-contact-body {
+          padding: 28px;
+          min-height: 320px;
+          background: rgba(0, 0, 0, 0.2);
+          position: relative;
         }
-        .signal-form__input:focus {
-          border-color: var(--amber);
-          box-shadow: 0 0 8px rgba(232, 163, 61, 0.15);
-        }
-        .signal-form__select {
-          cursor: pointer;
-          appearance: none;
-          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%23e8a33d'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M1 1l4 4 4-4'/></svg>");
-          background-repeat: no-repeat;
-          background-position: right 14px center;
-          padding-right: 32px;
-        }
-        .signal-form__textarea {
-          resize: none;
-        }
-        .signal-form__submit {
-          margin-top: 8px;
-          background: rgba(82, 201, 182, 0.08);
-          border: 1px solid var(--teal-dim);
-          border-radius: 3px;
+
+        .terminal-prompt {
           color: var(--teal);
-          padding: 12px;
-          cursor: pointer;
+          font-weight: bold;
+        }
+
+        .terminal-text {
+          font-size: 13px;
+          line-height: 1.6;
+        }
+
+        .terminal-text-input {
+          background: transparent !important;
+          border: none !important;
+          outline: none !important;
+          color: var(--amber) !important;
+          font-family: var(--font-mono);
+          font-size: 14px;
+          flex: 1;
+          width: 100%;
+          padding: 0;
+          caret-color: var(--amber);
+        }
+
+        .terminal-input-wrapper {
           display: flex;
           align-items: center;
-          justify-content: center;
-          gap: 8px;
+          background: rgba(255,255,255,0.01);
+          border: 1px solid var(--border-soft);
+          padding: 10px 14px;
+          border-radius: 4px;
+        }
+
+        .terminal-input-wrapper:focus-within {
+          border-color: var(--amber-dim);
+          box-shadow: 0 0 10px rgba(255, 176, 0, 0.15);
+        }
+
+        .terminal-cursor-prompt {
+          color: var(--amber);
+          font-weight: bold;
+          flex-shrink: 0;
+        }
+
+        .terminal-question {
+          font-size: 13px;
+          color: var(--text-dim);
+        }
+
+        .terminal-btn-primary {
+          background: rgba(255, 176, 0, 0.08);
+          border: 1px solid var(--amber-dim);
+          color: var(--amber);
+          font-family: var(--font-mono);
+          padding: 12px 20px;
           font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.05em;
-          transition: all 0.25s ease;
+          font-weight: bold;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
-        .signal-form__submit:hover {
-          background: var(--teal);
-          color: #0d1210;
-          border-color: var(--teal);
-          transform: translateY(-1px);
+
+        .terminal-btn-primary:hover {
+          background: var(--amber);
+          color: #0b0702;
+          box-shadow: 0 0 15px rgba(255, 176, 0, 0.25);
         }
-        
-        /* Transmitting State */
-        .signal-tx {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
+
+        .terminal-btn-secondary {
+          background: transparent;
+          border: 1px solid var(--border-soft);
+          color: var(--text-mute);
+          font-family: var(--font-mono);
+          padding: 10px 18px;
+          font-size: 11px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
-        .signal-tx__progress-row {
+
+        .terminal-btn-secondary:hover {
+          border-color: var(--border);
+          color: var(--text-dim);
+          background: rgba(255,255,255,0.02);
+        }
+
+        .terminal-btn-small {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid var(--border-soft);
+          color: var(--text-dim);
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: bold;
+          padding: 6px 14px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .terminal-btn-small:hover {
+          background: rgba(255,255,255,0.06);
+          border-color: var(--text-dim);
+        }
+
+        .terminal-step-footer {
           display: flex;
           justify-content: space-between;
-          font-size: 11px;
-          color: var(--text-dim);
-          letter-spacing: 0.05em;
+          align-items: center;
         }
-        .signal-tx__bar-container {
-          margin-top: 8px;
+
+        .terminal-hint {
+          font-size: 11px;
+        }
+
+        .terminal-options-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        @media (max-width: 480px) {
+          .terminal-options-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .terminal-option-card {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 16px;
+          background: rgba(255,255,255,0.01);
+          border: 1px solid var(--border-soft);
+          border-radius: 6px;
+          cursor: pointer;
+          font-family: var(--font-mono);
+          color: var(--text-mute);
+          text-align: left;
+          transition: all 0.2s ease;
+        }
+
+        .terminal-option-card:hover {
+          background: rgba(255,255,255,0.03);
+          border-color: var(--border);
+          color: var(--text-dim);
+        }
+
+        .terminal-option-card.selected {
+          border-color: var(--teal);
+          background: rgba(82, 201, 182, 0.05);
+          color: var(--teal);
+          box-shadow: 0 0 10px rgba(82, 201, 182, 0.1);
+        }
+
+        .terminal-textarea-wrapper {
+          display: flex;
+          background: rgba(255,255,255,0.01);
+          border: 1px solid var(--border-soft);
+          padding: 12px;
+          border-radius: 4px;
+        }
+
+        .terminal-textarea-wrapper:focus-within {
+          border-color: var(--amber-dim);
+          box-shadow: 0 0 10px rgba(255, 176, 0, 0.15);
+        }
+
+        .terminal-textarea-prompt {
+          color: var(--amber);
+          font-weight: bold;
+          flex-shrink: 0;
+          margin-top: 1px;
+        }
+
+        .terminal-textarea-input {
+          background: transparent !important;
+          border: none !important;
+          outline: none !important;
+          color: var(--amber) !important;
+          font-family: var(--font-mono);
+          font-size: 13px;
+          flex: 1;
+          width: 100%;
+          padding: 0;
+          resize: none;
+          line-height: 1.5;
+        }
+
+        .terminal-manifest {
+          background: var(--bg-soft);
+          border: 1px dashed var(--border-soft);
+          border-radius: 4px;
+          overflow: hidden;
+        }
+
+        .manifest-header {
+          background: rgba(255, 255, 255, 0.02);
+          padding: 8px 16px;
+          border-bottom: 1px dashed var(--border-soft);
+          font-size: 11px;
+          font-weight: bold;
+          color: var(--text-mute);
+        }
+
+        .manifest-grid {
+          padding: 12px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .manifest-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 12px;
+          border-bottom: 1px solid rgba(255,255,255,0.02);
+          padding-bottom: 6px;
+        }
+
+        .manifest-row span:first-child {
+          color: var(--text-mute);
+        }
+
+        .truncate-msg {
+          max-width: 180px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .terminal-progress-bar {
           height: 3px;
           background: var(--border-soft);
           border-radius: 999px;
           overflow: hidden;
         }
-        .signal-tx__bar {
+
+        .progress-fill {
           height: 100%;
           background: linear-gradient(90deg, var(--amber), var(--teal));
           transition: width 0.4s var(--ease);
           box-shadow: 0 0 6px var(--teal);
         }
-        .signal-tx__logs {
+
+        .terminal-logs {
           background: rgba(0,0,0,0.3);
           border: 1px solid var(--border-soft);
-          border-radius: 3px;
+          border-radius: 4px;
           padding: 14px 18px;
           height: 120px;
           overflow-y: auto;
@@ -553,81 +941,44 @@ export default function Contact() {
           flex-direction: column;
           gap: 6px;
           font-size: 11px;
-          line-height: 1.6;
         }
-        .signal-tx__log-line {
-          color: var(--teal);
-          word-break: break-all;
-        }
-        
-        /* Success State */
-        .signal-success {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 24px;
-          text-align: center;
-          padding: 10px 0;
-        }
-        .signal-success__badge {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-        }
-        .success-icon {
+
+        .terminal-log-line {
           color: var(--teal);
         }
-        .signal-success__badge h4 {
-          font-size: 13px;
-          letter-spacing: 0.08em;
-          color: var(--text);
+
+        .success-glowing-circle {
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          border: 1px solid var(--teal-dim);
+          background: rgba(82, 201, 182, 0.05);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 0 20px rgba(82, 201, 182, 0.15);
         }
-        .signal-success__receipt {
+
+        .terminal-receipt {
           background: var(--bg-soft);
           border: 1px dashed var(--border);
-          border-radius: 3px;
-          width: 100%;
+          border-radius: 4px;
           padding: 16px 20px;
           display: flex;
           flex-direction: column;
           gap: 8px;
-          text-align: left;
           font-size: 11.5px;
         }
-        .receipt-row {
+
+        .receipt-line {
           display: flex;
           justify-content: space-between;
         }
-        .receipt-row span:first-child {
+
+        .receipt-line span:first-child {
           color: var(--text-mute);
         }
-        .receipt-row span:last-child {
-          color: var(--text);
-        }
-        .receipt-status {
-          color: var(--teal) !important;
-          font-weight: 600;
-        }
-        .signal-success__reset {
-          background: none;
-          border: 1px solid var(--border-soft);
-          border-radius: 3px;
-          color: var(--text-mute);
-          padding: 8px 16px;
-          font-size: 11px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          transition: all 0.2s ease;
-        }
-        .signal-success__reset:hover {
-          border-color: var(--border);
-          color: var(--text-dim);
-          background: rgba(255, 255, 255, 0.02);
-        }
-        
+
         .footer {
           border-top: 1px solid var(--border-soft);
           padding: 26px 0;

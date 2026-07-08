@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import Reveal from "./Reveal.jsx";
+import TechOrbits from "./TechOrbits.jsx";
 
 const STACK = [
   { id: "01", label: "Languages", items: ["C", "C++", "Java", "Python", "PHP", "JavaScript"] },
@@ -27,45 +28,74 @@ export default function Skills() {
           <h2 className="section-title">What I reach for when a project starts.</h2>
         </Reveal>
 
-        <div className="skills__rows">
-          {STACK.map((row, i) => (
-            <Reveal key={row.id} delay={Math.min(i + 1, 4)} className="skills__row">
-              <span className="mono skills__index">{row.id}</span>
-              <span className="skills__label">{row.label}</span>
-              <div className="skills__chips">
-                {row.items.map((item) => (
-                  <motion.span
-                    key={item}
-                    className="mono skills__chip"
-                    whileHover={{ y: -3, color: "var(--amber)" }}
-                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                  >
-                    {item}
-                  </motion.span>
+        <div className="skills__layout-grid">
+          <div className="skills__left-col">
+            <div className="skills__rows">
+              {STACK.map((row, i) => (
+                <Reveal key={row.id} delay={Math.min(i + 1, 4)} className="skills__row">
+                  <span className="mono skills__index">{row.id}</span>
+                  <span className="skills__label">{row.label}</span>
+                  <div className="skills__chips">
+                    {row.items.map((item) => (
+                      <motion.span
+                        key={item}
+                        className="mono skills__chip"
+                        whileHover={{ y: -3, color: "var(--amber)" }}
+                        transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                      >
+                        {item}
+                      </motion.span>
+                    ))}
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+
+            <Reveal delay={4} className="skills__course">
+              <span className="mono skills__course-label">Coursework</span>
+              <div className="skills__course-list">
+                {COURSEWORK.map((c) => (
+                  <span key={c}>{c}</span>
                 ))}
               </div>
             </Reveal>
-          ))}
-        </div>
-
-        <Reveal delay={4} className="skills__course">
-          <span className="mono skills__course-label">Coursework</span>
-          <div className="skills__course-list">
-            {COURSEWORK.map((c) => (
-              <span key={c}>{c}</span>
-            ))}
           </div>
-        </Reveal>
+
+          <div className="skills__right-col">
+            <Reveal delay={2}>
+              <div className="skills__orbit-wrapper">
+                <TechOrbits />
+              </div>
+            </Reveal>
+          </div>
+        </div>
       </div>
 
       <style>{`
+        .skills__layout-grid {
+          display: grid;
+          grid-template-columns: 1.1fr 1fr;
+          gap: 48px;
+          align-items: start;
+          margin-top: 48px;
+        }
+        @media (max-width: 1024px) {
+          .skills__layout-grid {
+            grid-template-columns: 1fr;
+            gap: 40px;
+          }
+        }
+        .skills__orbit-wrapper {
+          display: flex;
+          justify-content: center;
+          width: 100%;
+        }
         .skills__rows {
-          margin-top: 56px;
           border-top: 1px solid var(--border-soft);
         }
         .skills__row {
           display: grid;
-          grid-template-columns: 40px 160px 1fr;
+          grid-template-columns: 40px 140px 1fr;
           align-items: baseline;
           gap: 20px;
           padding: 22px 12px;

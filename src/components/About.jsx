@@ -23,12 +23,15 @@ export default function About() {
               strong willingness to learn whatever the next project asks of
               me.
             </p>
+            <p className="about__text mt-4">
+              My engineering philosophy centers around modular design systems, robust type safety, and structural micro-optimization. Whether streamlining chest radiograph neural net layers for Edge-device deployment or establishing strict SQLite cascades, I build systems that scale gracefully.
+            </p>
           </Reveal>
 
           <Reveal delay={2} className="about__record">
             <div className="about__record-row">
               <span className="mono about__record-label">Institution</span>
-              <span>Sri Venkateswara College of Engineering</span>
+              <span>Sri Venkateswara College of Engineering (SVCE)</span>
             </div>
             <div className="about__record-row">
               <span className="mono about__record-label">Program</span>
@@ -37,6 +40,10 @@ export default function About() {
             <div className="about__record-row">
               <span className="mono about__record-label">Expected</span>
               <span>2028</span>
+            </div>
+            <div className="about__record-row">
+              <span className="mono about__record-label">Focus Areas</span>
+              <span>Data Structures, Database Management, ML Serving</span>
             </div>
             <div className="about__record-row">
               <span className="mono about__record-label">Languages</span>

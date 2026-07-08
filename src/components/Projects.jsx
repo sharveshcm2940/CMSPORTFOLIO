@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "./Reveal.jsx";
-import ActivityGraph from "./ActivityGraph.jsx";
 import ProjectSimulator from "./ProjectSimulator.jsx";
 import { toast } from "./Toast.jsx";
 
@@ -623,8 +622,6 @@ export default function Projects() {
             />
           )}
         </AnimatePresence>
-
-        <ActivityGraph />
       </div>
 
       <style>{`

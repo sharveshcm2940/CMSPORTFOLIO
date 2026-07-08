@@ -13,9 +13,9 @@ const BOOT_LINES = [
 const TERMINAL_SUGGESTIONS = [
   "whoami",
   "projects",
-  "stats",
+  "github",
   "neofetch",
-  "theme cyberpunk",
+  "theme amber",
   "clear",
 ];
 
@@ -34,11 +34,29 @@ function buildResponse(rawCmd, scrollTo) {
       "  experience    where I've worked",
       "  projects      things I've shipped",
       "  stats         real-time telemetry and project stats",
+      "  github        display git logs & telemetry",
       "  neofetch      display portfolio system info",
       "  theme         list available console themes",
-      "  theme <name>  change theme (classic, matrix, cyberpunk, amber, monochrome)",
+      "  theme <name>  change theme (amber, monochrome)",
       "  contact       how to reach me",
       "  clear         clear the screen",
+    ];
+  }
+
+  if (lower === "github" || lower === "git") {
+    scrollTo?.("github-stats");
+    return [
+      "========================================",
+      "        GITHUB SYSTEMS READOUT          ",
+      "========================================",
+      "  Username     : sharveshcm2940",
+      "  Repositories : 12 active modules",
+      "  Commits      : 482 system commits",
+      "  Languages    : Python (42%), JavaScript (28%)",
+      "                 Java/C++ (20%), Flutter (10%)",
+      "  Profile      : github.com/sharveshcm2940",
+      "========================================",
+      "navigating to github telemetry board...",
     ];
   }
 
@@ -130,18 +148,15 @@ function buildResponse(rawCmd, scrollTo) {
   if (lower === "theme") {
     return [
       "available themes:",
-      "  theme classic      - Amber and Teal default styling",
-      "  theme matrix       - Green code terminal aesthetic",
-      "  theme cyberpunk    - Hot pink and electric neon blue",
       "  theme amber        - Pure retro monochrome amber CRT",
       "  theme monochrome   - Elegant stark silver & white",
-      "usage: 'theme <name>' (e.g. 'theme matrix')",
+      "usage: 'theme <name>' (e.g. 'theme amber')",
     ];
   }
 
   if (lower.startsWith("theme ")) {
     const tName = lower.slice(6).trim();
-    if (["classic", "matrix", "cyberpunk", "amber", "monochrome"].includes(tName)) {
+    if (["amber", "monochrome"].includes(tName)) {
       return [`__THEME_CHANGE__:${tName}`];
     }
     return [`unknown theme: '${tName}'. type 'theme' to see options.`];
@@ -243,33 +258,6 @@ export default function Terminal() {
   };
 
   const themeStyles = {
-    classic: {
-      "--term-bg": "var(--panel)",
-      "--term-text": "var(--text)",
-      "--term-prompt": "var(--teal)",
-      "--term-cursor": "var(--amber)",
-      "--term-output": "var(--text-dim)",
-      "--term-border": "var(--border)",
-      "--term-header": "var(--bg-soft)",
-    },
-    matrix: {
-      "--term-bg": "#050a06",
-      "--term-text": "#00ff66",
-      "--term-prompt": "#00ff33",
-      "--term-cursor": "#00ff66",
-      "--term-output": "#00cc55",
-      "--term-border": "#11331a",
-      "--term-header": "#08100a",
-    },
-    cyberpunk: {
-      "--term-bg": "#120216",
-      "--term-text": "#ff007f",
-      "--term-prompt": "#00ffff",
-      "--term-cursor": "#ff007f",
-      "--term-output": "#d883ff",
-      "--term-border": "#4a0b5a",
-      "--term-header": "#21052b",
-    },
     amber: {
       "--term-bg": "#0f0902",
       "--term-text": "#ffb000",
@@ -297,7 +285,7 @@ export default function Terminal() {
           <p className="eyebrow">Console</p>
           <h2 className="section-title">Or just ask the terminal.</h2>
           <p className="section-sub">
-            Type a command or click one of our quick action commands below. Try <span className="mono">neofetch</span> or <span className="mono">theme matrix</span>.
+            Type a command or click one of our quick action commands below. Try <span className="mono">neofetch</span> or <span className="mono">theme amber</span>.
           </p>
         </Reveal>
 

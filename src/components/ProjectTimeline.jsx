@@ -1,18 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   Calendar, 
-  ChevronRight, 
-  ChevronLeft, 
-  Settings, 
   Cpu, 
   Database, 
   Code, 
   CheckCircle2, 
-  Activity, 
-  Layers, 
-  Flame, 
-  TrendingUp, 
   ShieldCheck,
   Zap,
   Terminal,
@@ -237,7 +230,7 @@ CREATE TABLE notes (
         title: "Internship Scope & Wireframing",
         date: "JE Infonet Intern",
         status: "Completed",
-        icon: Layers,
+        icon: Database,
         details: "Assessed the key operational pain points of the resident dispatch desk during my internship at JE Infonet. Designed layout schematics to eliminate disorganized spreadsheets and streamline maintenance.",
         highlights: [
           "Identified redundant ticket queues",
@@ -281,29 +274,9 @@ def assign_technician(ticket_id, tech_id):
 
 export default function ProjectTimeline() {
   const [activeProjectKey, setActiveProjectKey] = useState("hailmary");
-  const [selectedPhaseIdx, setSelectedPhaseIdx] = useState(0);
-  const trackRef = useRef(null);
 
   const activeProject = TIMELINE_DATA[activeProjectKey];
   const phases = activeProject.phases;
-  const currentPhase = phases[selectedPhaseIdx] || phases[0];
-
-  // Reset phase index when project shifts
-  useEffect(() => {
-    setSelectedPhaseIdx(0);
-  }, [activeProjectKey]);
-
-  const scrollLeft = () => {
-    if (trackRef.current) {
-      trackRef.current.scrollBy({ left: -260, behavior: "smooth" });
-    }
-  };
-
-  const scrollRight = () => {
-    if (trackRef.current) {
-      trackRef.current.scrollBy({ left: 260, behavior: "smooth" });
-    }
-  };
 
   return (
     <section id="project-timeline" className="section project-timeline">
@@ -332,7 +305,7 @@ export default function ProjectTimeline() {
                     key={key}
                     onClick={() => {
                       setActiveProjectKey(key);
-                      toast(`[SYSTEM] Retreiving chronicles for ${project.title}`, "info");
+                      toast(`[SYSTEM] Retrieving chronicles for ${project.title}`, "info");
                     }}
                     className={`timeline-tab-btn mono ${isActive ? "active" : ""}`}
                     style={{
@@ -358,171 +331,110 @@ export default function ProjectTimeline() {
           </div>
         </Reveal>
 
-        {/* Interactive Stepper Control Row */}
-        <div className="timeline-main-grid">
-          
-          {/* LEFT: Horizontal Track (Gallery of Phases) */}
-          <div className="timeline-gallery-column">
-            
-            <div className="gallery-control-bar">
-              <span className="mono text-xs text-mute font-bold">
-                SELECT STEP TO ANALYZE // {selectedPhaseIdx + 1} OF {phases.length}
-              </span>
-              <div className="gallery-scroll-btns">
-                <button onClick={scrollLeft} className="scroll-btn" aria-label="Scroll Left">
-                  <ChevronLeft size={16} />
-                </button>
-                <button onClick={scrollRight} className="scroll-btn" aria-label="Scroll Right">
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
+        {/* Vertical Timeline Container */}
+        <div className="vertical-timeline">
+          {/* Central Line - styled dynamically based on active project's accent */}
+          <div className="vertical-timeline-line" style={{ background: `linear-gradient(180deg, ${activeProject.accent} 0%, var(--border-soft) 100%)` }} />
 
-            {/* Custom Horizontal Scroll Track */}
-            <div className="timeline-horizontal-track-container">
-              
-              {/* Dynamic Connecting Line across the gallery */}
-              <div className="timeline-track-progress-line" style={{ background: `linear-gradient(90deg, ${activeProject.accent} 0%, rgba(255,255,255,0.05) 100%)` }} />
-
-              <div className="timeline-horizontal-track" ref={trackRef}>
-                {phases.map((phase, idx) => {
-                  const PhaseIcon = phase.icon;
-                  const isSelected = selectedPhaseIdx === idx;
-                  return (
-                    <motion.div
-                      key={phase.id}
-                      onClick={() => setSelectedPhaseIdx(idx)}
-                      className={`timeline-card-item ${isSelected ? "selected" : ""}`}
-                      style={{
-                        borderColor: isSelected ? activeProject.accent : "var(--border-soft)"
-                      }}
-                      whileHover={{ y: -3, scale: 1.01 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {/* Active Indicator Pin */}
-                      <div className="card-top-pin">
-                        <div 
-                          className={`pin-dot ${isSelected ? "animate-pulse" : ""}`}
-                          style={{ 
-                            background: isSelected ? activeProject.accent : "var(--border-soft)",
-                            boxShadow: isSelected ? `0 0 10px ${activeProject.accent}` : "none"
-                          }}
-                        />
-                      </div>
-
-                      <div className="card-header-meta">
-                        <span className="mono card-number" style={{ color: activeProject.accent }}>{phase.number}</span>
-                        <span className="mono card-date">{phase.date}</span>
-                      </div>
-
-                      <div className="card-content-block">
-                        <div className="card-icon-title-row">
-                          <div className="card-icon-container" style={{ background: isSelected ? `rgba(255,255,255,0.02)` : "transparent" }}>
-                            <PhaseIcon size={16} style={{ color: isSelected ? activeProject.accent : "var(--text-dim)" }} />
-                          </div>
-                          <h4 className="card-title">{phase.title}</h4>
-                        </div>
-                        <p className="card-short-desc text-xs text-mute truncate-2-lines">
-                          {phase.details}
-                        </p>
-                      </div>
-
-                      <div className="card-footer-meta">
-                        <div className="mono text-[10px] text-mute flex items-center gap-1">
-                          <Clock size={10} />
-                          {phase.status}
-                        </div>
-                        {phase.metricVal && (
-                          <div className="mono text-[10px] font-bold" style={{ color: activeProject.accent }}>
-                            {phase.metricVal}
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* LOWER: Selected Phase Technical Details Card (Interactive inspect panel) */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentPhase.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="timeline-inspect-panel"
-                style={{
-                  borderLeft: `4px solid ${activeProject.accent}`
-                }}
-              >
-                <div className="inspect-header-row">
-                  <div className="inspect-header-left">
-                    <span className="mono inspect-tag" style={{ color: activeProject.accent }}>
-                      STAGE_SPECIFICATION // {currentPhase.number}
-                    </span>
-                    <h3 className="inspect-title">{currentPhase.title}</h3>
-                  </div>
-                  <div className="inspect-header-right">
-                    <span className="mono inspect-date flex items-center gap-1">
-                      <Calendar size={12} />
-                      {currentPhase.date}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="inspect-body-grid">
+          <div className="vertical-timeline-items">
+            {phases.map((phase, idx) => {
+              const PhaseIcon = phase.icon;
+              return (
+                <div key={phase.id} className="vertical-timeline-item">
                   
-                  {/* Phase Narrative Summary */}
-                  <div className="inspect-narrative-col">
-                    <h5 className="mono inspect-sublabel">OBJECTIVE & WORKFLOW</h5>
-                    <p className="inspect-desc">{currentPhase.details}</p>
-
-                    <h5 className="mono inspect-sublabel mt-5">KEY ACHIEVEMENTS</h5>
-                    <ul className="inspect-highlights-list">
-                      {currentPhase.highlights.map((h, i) => (
-                        <li key={i} className="inspect-highlight-item">
-                          <CheckCircle2 size={13} className="text-teal" />
-                          <span>{h}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* Operational KPI Gauge */}
-                    <div className="inspect-kpi-footer">
-                      <div className="inspect-kpi-block">
-                        <span className="mono kpi-label">{currentPhase.metricLabel}</span>
-                        <div className="kpi-value-row">
-                          <TrendingUp size={16} style={{ color: activeProject.accent }} />
-                          <span className="kpi-val" style={{ color: activeProject.accent }}>{currentPhase.metricVal}</span>
-                        </div>
-                      </div>
+                  {/* Glowing Marker Dot with Icon */}
+                  <div className="vertical-timeline-node-container">
+                    <div 
+                      className="vertical-timeline-node" 
+                      style={{ 
+                        borderColor: activeProject.accent,
+                        boxShadow: `0 0 12px ${activeProject.accent}40`,
+                        background: 'var(--panel)'
+                      }}
+                    >
+                      <PhaseIcon size={14} style={{ color: activeProject.accent }} />
                     </div>
                   </div>
 
-                  {/* Phase Code Snippet / Shell Logs Simulation */}
-                  <div className="inspect-code-col">
-                    <div className="code-editor-header">
-                      <div className="editor-dots">
-                        <span /><span /><span />
+                  {/* Card Content Area */}
+                  <div className="vertical-timeline-card-wrapper">
+                    <motion.div 
+                      className="vertical-timeline-card"
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.5, delay: idx * 0.1 }}
+                      style={{ borderLeft: `3px solid ${activeProject.accent}` }}
+                    >
+                      {/* Card Header */}
+                      <div className="timeline-card-header">
+                        <div className="header-meta">
+                          <span className="mono phase-number" style={{ color: activeProject.accent }}>
+                            {phase.number}
+                          </span>
+                          <span className="mono phase-date flex items-center gap-1">
+                            <Calendar size={11} />
+                            {phase.date}
+                          </span>
+                        </div>
+                        <h3 className="phase-title">{phase.title}</h3>
+                        <div className="phase-status-badge mono">
+                          <Clock size={11} />
+                          <span>{phase.status}</span>
+                        </div>
                       </div>
-                      <span className="mono text-xs text-mute flex items-center gap-1">
-                        <Terminal size={12} />
-                        {activeProjectKey === "hailmary" ? "pipeline_node.py" : "system_trace.sql"}
-                      </span>
-                    </div>
-                    <pre className="code-editor-body mono">
-                      <code>{currentPhase.code}</code>
-                    </pre>
+
+                      {/* Card Body Columns */}
+                      <div className="timeline-card-body">
+                        
+                        {/* Narrative Text & Deliverables */}
+                        <div className="narrative-section">
+                          <p className="phase-details">{phase.details}</p>
+                          
+                          <div className="achievements-block">
+                            <span className="mono deliverables-title">KEY ACHIEVEMENTS</span>
+                            <ul className="highlights-list">
+                              {phase.highlights.map((h, i) => (
+                                <li key={i} className="highlight-item">
+                                  <CheckCircle2 size={12} style={{ color: activeProject.accent }} />
+                                  <span>{h}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Metric Badge */}
+                          <div className="metric-badge-box">
+                            <span className="mono metric-label">{phase.metricLabel}:</span>
+                            <span className="mono metric-val" style={{ color: activeProject.accent }}>{phase.metricVal}</span>
+                          </div>
+                        </div>
+
+                        {/* Code Simulator Box */}
+                        <div className="code-simulator-section">
+                          <div className="code-header">
+                            <div className="editor-dots">
+                              <span /><span /><span />
+                            </div>
+                            <span className="mono file-name flex items-center gap-1 text-mute text-xs">
+                              <Terminal size={11} />
+                              {activeProjectKey === "hailmary" ? "pipeline_node.py" : "system_trace.sql"}
+                            </span>
+                          </div>
+                          <pre className="code-content mono">
+                            <code>{phase.code}</code>
+                          </pre>
+                        </div>
+
+                      </div>
+
+                    </motion.div>
                   </div>
 
                 </div>
-              </motion.div>
-            </AnimatePresence>
-
+              );
+            })}
           </div>
-
         </div>
 
       </div>
@@ -533,7 +445,6 @@ export default function ProjectTimeline() {
           border-top: 1px solid var(--border-soft);
           border-bottom: 1px solid var(--border-soft);
           padding: 100px 0;
-          overflow: hidden;
           position: relative;
         }
 
@@ -547,7 +458,7 @@ export default function ProjectTimeline() {
           border: 1px solid var(--border-soft);
           border-radius: 12px;
           padding: 8px;
-          margin-bottom: 36px;
+          margin-bottom: 56px;
         }
 
         .timeline-switcher-grid {
@@ -607,357 +518,287 @@ export default function ProjectTimeline() {
           font-weight: 600;
         }
 
-        /* Timeline Grid Layout */
-        .timeline-main-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-        }
-
-        .timeline-gallery-column {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
+        /* Vertical Timeline CSS */
+        .vertical-timeline {
+          position: relative;
           width: 100%;
+          margin: 0 auto;
+          padding-left: 40px; /* Space for the vertical line on mobile/all views */
         }
 
-        .gallery-control-bar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 0 4px;
-        }
-
-        .gallery-scroll-btns {
-          display: flex;
-          gap: 8px;
-        }
-
-        .scroll-btn {
-          background: var(--panel);
-          border: 1px solid var(--border-soft);
-          color: var(--text-dim);
-          border-radius: 50%;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .scroll-btn:hover {
-          background: var(--panel-raised);
-          border-color: var(--text-dim);
-          color: var(--text);
-        }
-
-        /* Horizontal Track System */
-        .timeline-horizontal-track-container {
-          position: relative;
-          background: rgba(255,255,255,0.01);
-          border: 1px solid var(--border-soft);
-          border-radius: 12px;
-          padding: 24px 0;
-          overflow: hidden;
-        }
-
-        .timeline-track-progress-line {
-          position: absolute;
-          top: 36px;
-          left: 40px;
-          right: 40px;
-          height: 2px;
-          opacity: 0.3;
-          pointer-events: none;
-          z-index: 1;
-        }
-
-        .timeline-horizontal-track {
-          display: flex;
-          gap: 24px;
-          overflow-x: auto;
-          padding: 12px 24px;
-          scroll-behavior: smooth;
-          position: relative;
-          z-index: 2;
-        }
-
-        /* Hide Scrollbar for clean look but preserve scrolling */
-        .timeline-horizontal-track::-webkit-scrollbar {
-          height: 6px;
-        }
-        .timeline-horizontal-track::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .timeline-horizontal-track::-webkit-scrollbar-thumb {
-          background: var(--border-soft);
-          border-radius: 4px;
-        }
-        .timeline-horizontal-track::-webkit-scrollbar-thumb:hover {
-          background: var(--text-mute);
-        }
-
-        /* Card Element */
-        .timeline-card-item {
-          flex: 0 0 250px;
-          background: rgba(14, 16, 20, 0.8);
-          border: 1px solid var(--border-soft);
-          border-radius: 8px;
-          padding: 16px;
-          cursor: pointer;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          position: relative;
-          transition: all 0.3s var(--ease);
-          box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        .timeline-card-item:hover {
-          background: var(--panel-raised);
-          box-shadow: 0 12px 24px rgba(0,0,0,0.4);
-        }
-
-        .timeline-card-item.selected {
-          background: rgba(255,255,255,0.02);
-          box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 15px 30px rgba(0,0,0,0.4);
-        }
-
-        .card-top-pin {
-          position: absolute;
-          top: -15px;
-          left: 24px;
-          z-index: 10;
-        }
-
-        .pin-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          border: 1px solid #000;
-        }
-
-        .card-header-meta {
-          display: flex;
-          justify-content: space-between;
-          font-size: 10px;
-          font-weight: 700;
-        }
-
-        .card-date {
-          color: var(--text-mute);
-        }
-
-        .card-icon-title-row {
-          display: flex;
-          gap: 10px;
-          align-items: center;
-          margin-bottom: 4px;
-        }
-
-        .card-icon-container {
-          width: 26px;
-          height: 26px;
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid var(--border-soft);
-        }
-
-        .card-title {
-          font-size: 13px;
-          font-weight: 700;
-          color: var(--text);
-          line-height: 1.2;
-        }
-
-        .card-short-desc {
-          font-size: 11px;
-          color: var(--text-dim);
-          line-height: 1.4;
-        }
-
-        .card-footer-meta {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-top: 1px solid rgba(255, 255, 255, 0.03);
-          padding-top: 10px;
-          margin-top: auto;
-        }
-
-        /* Inspect Panel below the track */
-        .timeline-inspect-panel {
-          background: var(--panel);
-          border: 1px solid var(--border-soft);
-          border-radius: 12px;
-          padding: 28px;
-          box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-        }
-
-        .inspect-header-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          border-bottom: 1px solid var(--border-soft);
-          padding-bottom: 16px;
-          margin-bottom: 24px;
-        }
-
-        @media (max-width: 600px) {
-          .inspect-header-row {
-            flex-direction: column;
-            gap: 12px;
+        @media (min-width: 1024px) {
+          .vertical-timeline {
+            padding-left: 60px;
           }
         }
 
-        .inspect-tag {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          margin-bottom: 4px;
-          display: block;
+        .vertical-timeline-line {
+          position: absolute;
+          left: 14px;
+          top: 0;
+          bottom: 0;
+          width: 2px;
+          opacity: 0.35;
+          z-index: 1;
         }
 
-        .inspect-title {
-          font-size: 20px;
-          font-weight: 700;
-          color: var(--text);
-          letter-spacing: -0.01em;
+        @media (min-width: 1024px) {
+          .vertical-timeline-line {
+            left: 24px;
+          }
         }
 
-        .inspect-date {
+        .vertical-timeline-items {
+          display: flex;
+          flex-direction: column;
+          gap: 40px;
+        }
+
+        .vertical-timeline-item {
+          position: relative;
+          display: flex;
+          width: 100%;
+        }
+
+        .vertical-timeline-node-container {
+          position: absolute;
+          left: -40px;
+          top: 24px;
+          z-index: 10;
+        }
+
+        @media (min-width: 1024px) {
+          .vertical-timeline-node-container {
+            left: -60px;
+          }
+        }
+
+        .vertical-timeline-node {
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          border: 1px solid;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--panel) !important;
+          margin-left: 0;
+          position: relative;
+          transform: translateX(0);
+        }
+
+        @media (min-width: 1024px) {
+          .vertical-timeline-node {
+            width: 36px;
+            height: 36px;
+            margin-left: 6px;
+          }
+        }
+
+        .vertical-timeline-card-wrapper {
+          width: 100%;
+        }
+
+        .vertical-timeline-card {
+          background: var(--panel);
+          border: 1px solid var(--border-soft);
+          border-radius: 12px;
+          padding: 24px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+          transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+        }
+
+        .vertical-timeline-card:hover {
+          box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+          border-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .timeline-card-header {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          border-bottom: 1px solid var(--border-soft);
+          padding-bottom: 16px;
+          margin-bottom: 20px;
+        }
+
+        @media (min-width: 768px) {
+          .timeline-card-header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          }
+        }
+
+        .header-meta {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .phase-number {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .phase-date {
           font-size: 11px;
           color: var(--text-mute);
           background: rgba(255, 255, 255, 0.02);
           border: 1px solid var(--border-soft);
-          padding: 4px 10px;
+          padding: 2px 8px;
           border-radius: 4px;
         }
 
-        .inspect-body-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 32px;
+        .phase-title {
+          font-size: 18px;
+          font-weight: 700;
+          color: var(--text);
+          letter-spacing: -0.01em;
+          margin: 4px 0 0;
         }
 
-        @media (max-width: 900px) {
-          .inspect-body-grid {
-            grid-template-columns: 1fr;
-            gap: 24px;
+        @media (min-width: 768px) {
+          .phase-title {
+            margin: 0;
+            flex: 1;
+            padding-left: 20px;
+            padding-right: 20px;
           }
         }
 
-        .inspect-sublabel {
+        .phase-status-badge {
           font-size: 10px;
           color: var(--text-mute);
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          margin-bottom: 10px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          border: 1px solid var(--border-soft);
+          padding: 2px 8px;
+          border-radius: 4px;
+          width: fit-content;
         }
 
-        .inspect-desc {
+        .timeline-card-body {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+
+        @media (min-width: 1024px) {
+          .timeline-card-body {
+            grid-template-columns: 1.2fr 1fr;
+          }
+        }
+
+        .narrative-section {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .phase-details {
           font-size: 13.5px;
           color: var(--text-dim);
-          line-height: 1.6;
+          line-height: 1.65;
         }
 
-        .inspect-highlights-list {
+        .achievements-block {
           display: flex;
           flex-direction: column;
-          gap: 8px;
-        }
-
-        .inspect-highlight-item {
-          display: flex;
-          align-items: center;
           gap: 10px;
-          font-size: 13px;
-          color: var(--text-dim);
         }
 
-        .inspect-kpi-footer {
-          margin-top: 24px;
-          border-top: 1px dashed var(--border-soft);
-          padding-top: 16px;
-        }
-
-        .inspect-kpi-block {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .kpi-label {
+        .deliverables-title {
           font-size: 9px;
           color: var(--text-mute);
-          letter-spacing: 0.05em;
+          letter-spacing: 0.08em;
+          font-weight: 700;
         }
 
-        .kpi-value-row {
+        .highlights-list {
           display: flex;
-          align-items: center;
+          flex-direction: column;
           gap: 8px;
         }
 
-        .kpi-val {
-          font-size: 18px;
-          font-weight: 700;
-          letter-spacing: 0.02em;
+        .highlight-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          font-size: 13px;
+          color: var(--text-dim);
+          line-height: 1.4;
         }
 
-        /* Code Column editor mock */
-        .inspect-code-col {
+        .highlight-item svg {
+          margin-top: 2px;
+          flex-shrink: 0;
+        }
+
+        .metric-badge-box {
           display: flex;
-          flex-direction: column;
+          align-items: center;
+          background: rgba(255, 255, 255, 0.01);
+          border: 1px dashed var(--border-soft);
+          padding: 8px 12px;
+          border-radius: 6px;
+          width: fit-content;
+          font-size: 11.5px;
+        }
+
+        .metric-label {
+          color: var(--text-mute);
+        }
+
+        .metric-val {
+          font-weight: 700;
+        }
+
+        /* Code Simulator Column */
+        .code-simulator-section {
           background: #060709;
           border: 1px solid var(--border-soft);
           border-radius: 8px;
           overflow: hidden;
-          min-height: 240px;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          min-height: 200px;
         }
 
-        .code-editor-header {
+        .code-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           background: rgba(255,255,255,0.01);
           border-bottom: 1px solid var(--border-soft);
-          padding: 10px 16px;
+          padding: 8px 16px;
         }
 
         .editor-dots {
           display: flex;
-          gap: 6px;
+          gap: 5px;
         }
 
         .editor-dots span {
-          width: 8px;
-          height: 8px;
+          width: 7px;
+          height: 7px;
           border-radius: 50%;
           background: var(--border-soft);
         }
 
-        .code-editor-body {
-          padding: 18px;
+        .code-content {
+          padding: 16px;
           margin: 0;
-          font-size: 11.5px;
-          line-height: 1.6;
+          font-size: 11px;
+          line-height: 1.55;
           color: #a3b8cc;
           overflow-x: auto;
           background: #060709;
           flex: 1;
-        }
-
-        /* Line clamping helper */
-        .truncate-2-lines {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
         }
       `}</style>
 

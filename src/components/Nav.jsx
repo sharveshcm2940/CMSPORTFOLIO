@@ -10,6 +10,7 @@ const LINKS = [
   { id: "experience", label: "Log" },
   { id: "projects", label: "Reports" },
   { id: "project-timeline", label: "Chronology" },
+  { id: "github-stats", label: "Telemetry" },
   { id: "certifications", label: "Credentials" },
   { id: "contact", label: "Contact" },
 ];
@@ -49,9 +50,6 @@ export default function Nav() {
               onChange={(e) => changeTheme(e.target.value)}
               aria-label="Change system theme"
             >
-              <option value="classic">Classic</option>
-              <option value="matrix">Matrix</option>
-              <option value="cyberpunk">Cyberpunk</option>
               <option value="amber">Amber CRT</option>
               <option value="monochrome">Stark Mono</option>
             </select>
