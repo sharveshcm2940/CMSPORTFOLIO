@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Suisse Intl", "Suisse International", "Neue Montreal", "Helvetica Now Display", "Helvetica Now Text", "Plus Jakarta Sans", "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Suisse Intl", "Suisse International", "Neue Montreal", "Helvetica Now Display", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --color-paper: #F7F6F2;
+  --color-paper-subtle: #EFECE6;
+  --color-ink: #171717;
+  --color-graphite: #737373;
+  --color-hairline: #DEDDD7;
+  --color-olive: #52634F;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background-color: #F7F6F2;
+    color: #171717;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Accessible keyboard focus states */
+  *:focus-visible {
+    outline: 1.5px solid #52634F;
+    outline-offset: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
